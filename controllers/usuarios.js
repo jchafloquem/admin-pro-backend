@@ -6,11 +6,21 @@ const { generarJWT } = require("../helpers/jwt");
 
 //Cargar los Usuarios
 const getUsuarios = async (req, res) => {
-  const usuarios = await Usuario.find({}, "nombre email role google");
+  const desde = Number(req.query.desde) || 0;
+  /* const usuarios = await Usuario.find({}, "nombre email role google")
+                                .skip(desde)
+                                .limit(5);
+  const total = await Usuario.count(); */
+  const [usuarios, total] = await Promise.all([
+    Usuario.find({}, "nombre email role google img").skip(desde).limit(5),
+    Usuario.countDocuments()
+  ]);
+
   res.json({
     ok: true,
     usuarios,
-    uid: req.uid
+    total,
+    //uid: req.uid
   });
 };
 
@@ -102,7 +112,7 @@ const borrarUsuario = async (req, res = response) => {
     await Usuario.findByIdAndDelete(uid);
     res.json({
       ok: true,
-      msg: 'Usuario eliminado',
+      msg: "Usuario eliminado",
     });
   } catch (error) {
     console.log(error);
